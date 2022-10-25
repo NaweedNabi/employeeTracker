@@ -1,10 +1,9 @@
-const inquirer = require('inquirer'); // import required packages
-const table = require('console.table');
+const inquirer = require('inquirer')
 const mysql = require('mysql2');
 
-require('dotenv').config() // this makes it listen to dotenv
+require('dotenv').config() 
 
-// create the connection to database
+
 const connection = mysql.createConnection({
     host: 'localhost',
     user: 'root',
@@ -12,8 +11,8 @@ const connection = mysql.createConnection({
     database: 'teammembers_db'
 });
 
-// create fucntion Start() =>{ Prompt asking what do you want to do... }
-function whatsUP() { // initiates prompt sequences starting w/ manager
+
+const questionsPrompt = () => { 
     inquirer.prompt({
         type: 'list',
         name: 'choice',
@@ -22,7 +21,6 @@ function whatsUP() { // initiates prompt sequences starting w/ manager
         }).then((answers) => {
         if (answers.choice === 'View all departments?') {
             viewDepartment();
-            // whatsUP();
         } else if (answers.choice === 'View all roles?') {
             viewRoles();
         } else if (answers.choice === 'View all employees?') {
@@ -30,88 +28,85 @@ function whatsUP() { // initiates prompt sequences starting w/ manager
             viewEmployees();
         } else if (answers.choice === 'Add a department?') {
             console.log('Add a department');
-            AddDepartment();
+            addDepartment();
         } else if (answers.choice === 'Add a role?') {
             console.log('Add a role');
-            AddRole();
+            addRole();
         } else if (answers.choice === 'Add an employee?') {
             console.log('Add an employee');
-            AddEmployee();
+            addEmployee();
         } else if (answers.choice === 'Update an employee?') {
             console.log('Update an employee')
             updateEmployee();
         }
     });
 }
-whatsUP();
+questionsPrompt();
 
-function viewDepartment(){
+const viewDepartment = () => {
     connection.query(
         'SELECT * FROM department',  
         function(err, results) {
             if (err){
                 throw err;
             }
-            console.table(results);
-            whatsNext();
+            console.log(results);
+            endingPrompt();
         }
     );
 }
 
-function viewRoles(){
+const viewRoles = () => {
     connection.query(
         'SELECT * FROM role',  
         function(err, results) {
             if (err){
                 throw err;
             }
-            console.table(results);
-            whatsNext();
+            console.log(results);
+            endingPrompt();
         }
     );
 }
 
-function viewEmployees(){
+const viewEmployees = () => {
     connection.query(
         'SELECT * FROM employee',  
         function(err, results) {
             if (err){
                 throw err;
             }
-            console.table(results);
-            whatsNext();
+            console.log(results);
+            endingPrompt();
 
         }
     );
 }
 
-function AddDepartment(){
-    inquirer
-    .prompt([
-    /* Pass your questions in here */
+const addDepartment = () => {
+    inquirer.prompt([
     {
         type: 'input',
         name: 'name',
         message: 'What is the department name?',
     },
     ])
-    .then((answers) => {
-    // we want to push this into the database for a newRole. 
+    .then((answers) => { 
     console.log(answers);
         connection.query('INSERT INTO department SET ?', {name: answers.name},
         function(err, results) {
             if (err){
                 throw err;
             }
-            console.table(results);
-            whatsNext();
+            console.log(results);
+            endingPrompt();
 
         }
     );
     });
 }
 
-function AddRole(){
+const addRole = () => {
 
     connection.query(
         'SELECT name, id FROM department',
@@ -125,9 +120,7 @@ function AddRole(){
                     value: departmentInfo.id
                 }
             })
-    inquirer
-    .prompt([
-    /* Pass your questions in here */
+    inquirer.prompt([
     {
         type: 'input',
         name: 'title',
@@ -146,7 +139,6 @@ function AddRole(){
     }
     ])
     .then((answers) => {
-    // we want to push this into the database for a newRole. 
     console.log(answers);
         connection.query('INSERT INTO role SET ?', {
             title: answers.title,
@@ -155,21 +147,19 @@ function AddRole(){
         },
         function(err, results) {
             if (err){
-                throw err;}
-            // this is basically saying if there is no error tell me the results. 
-            console.table('ROLE HAS BEEN ADDED!');
-            whatsUP();
-
+                console.log(err)
+            } else {
+            console.log(`ROLE HAS BEEN ADDED! ${results}`);
+        }
+            questionsPrompt();
         }
     );
     })
 })
 }
 
-function AddEmployee(){
-    inquirer
-    .prompt([
-    /* Pass your questions in here */
+const addEmployee = () => {
+    inquirer.prompt([
     {
         type: 'input',
         name: 'first_name',
@@ -192,7 +182,6 @@ function AddEmployee(){
     },
     ])
     .then((answers) => {
-    // we want to push this into the database for a newRole. 
     console.log(answers);
         connection.query('INSERT INTO employee SET ?', {
             first_name: answers.first_name,
@@ -200,19 +189,18 @@ function AddEmployee(){
             role_id: answers.role_id,
             manager_id: answers.manager_id
         },
-        function(err, results) {
+          (err, results) => {
             if (err){
-                throw err;}
-            // this is basically saying if there is no error tell me the results. 
-            console.table(results);
-            whatsUP();
+                throw err;} 
+            console.log(results);
+            questionsPrompt();
 
         }
     );
     })
 }
 
-function updateEmployee(){
+const updateEmployee = () => {
     connection.query(
         'SELECT id, first_name, last_name FROM employee',
         function(err, results) {
@@ -260,9 +248,8 @@ function updateEmployee(){
                     function(err, results) {
                         if (err){
                             throw err;}
-                        // this is basically saying if there is no error tell me the results. 
-                        console.table('Successfully updated');
-                        whatsNext();
+                        console.log('Successfully updated');
+                        endingPrompt();
                     }
                     )
             })
@@ -272,8 +259,8 @@ function updateEmployee(){
 
 
 
-    // create fucntion Start() =>{ Prompt asking what do you want to do... }
-function whatsNext() { // initiates prompt sequences starting w/ manager
+ 
+const endingPrompt = () => { 
     inquirer.prompt({
         type: 'list',
         name: 'choice',
@@ -286,7 +273,7 @@ function whatsNext() { // initiates prompt sequences starting w/ manager
             console.log('Thanks dude! Take it easy on me on the grade! ');
             return
         } else if (answers.choice === 'Yes') {
-            whatsUP();
+            questionsPrompt();
         }
     });
 }
